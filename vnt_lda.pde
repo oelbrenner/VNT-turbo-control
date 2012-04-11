@@ -6,6 +6,9 @@
 
 // 2011-06-28 Servo is disabled because they do not last long, use N75 or similiar
 
+// REMINDER TO MYSELF: this is the most recent version: /Users/dmn/Documents/Arduino/vnt_lda/vnt_lda.pde
+
+
 #include <avr/pgmspace.h>
 #include <EEPROM.h>
 //#include <Servo.h>
@@ -1894,6 +1897,13 @@ void readValues() {
     tpsAvg.avgData[tpsAvg.pos] = analogRead(PIN_TPS);   
 }
 
+void readValuesMap() {
+    mapAvg.pos++;
+    if (mapAvg.pos>=mapAvg.size)
+        mapAvg.pos=0;
+    mapAvg.avgData[mapAvg.pos] = analogRead(PIN_MAP);
+}
+
 unsigned char accelVal = 0;
 
 void processValues() {
@@ -2131,10 +2141,7 @@ void rpmTrigger() {
         
         // Read TPS & MAP values
         //readValues();
-        mapAvg.pos++;
-        if (mapAvg.pos>=mapAvg.size)
-            mapAvg.pos=0;
-        mapAvg.avgData[mapAvg.pos] = analogRead(PIN_MAP);
+        readValuesMap();
     }
     
     //__asm("sei");
@@ -2175,6 +2182,10 @@ unsigned char counter;
 void loop() {
     // read sensor data (moved off from interrupt handler)
     readValues();
+    if (controls.rpmActual == 0) {
+        // engine is not running, read map values manually
+        readValuesMap();
+    }
     
     counter++;
     unsigned char data = 0;
